@@ -135,6 +135,7 @@
     <div class="container">
         <header>
             <h1>PACPal Meds</h1>
+            <h2>Perioperative Medication Instructions<h2>
             <h2>Database Update 2/10/26</h2>
             <p id="status">Connecting to Google Sheets...</p>
         </header>
@@ -175,7 +176,7 @@
                 });
 
                 searchInput.disabled = false;
-                searchInput.placeholder = "Search (e.g., Amoxicillin)...";
+                searchInput.placeholder = "Search (e.g., Lisinopril)...";
                 document.getElementById('status').innerHTML = "✓ Database Online";
             } catch (error) {
                 document.getElementById('status').innerHTML = "✖ Error connecting to Sheets.";
