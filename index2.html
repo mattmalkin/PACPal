@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedData | Multi-Request Portal</title>
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --bg: #f4f7f6;
+            --text: #333;
+            --success: #27ae60;
+            --warning: #e67e22;
+            --white: #ffffff;
+            --danger: #e74c3c;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container { width: 100%; max-width: 700px; }
+
+        header { text-align: center; margin-bottom: 30px; }
+        
+        /* Search Section */
+        .search-box {
+            background: var(--white);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        #medSearch {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        /* Results Area */
+        #searchResults { margin-top: 15px; }
+        
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+            position: relative;
+            border-left: 5px solid transparent;
+        }
+
+        .search-result-card { border-left-color: var(--accent); }
+        .pinned-card { border-left-color: var(--success); }
+
+        .med-name { margin: 0; font-size: 22px; color: var(--primary); }
+        .category-badge {
+            font-size: 11px;
+            background: #e1f5fe;
+            color: var(--accent);
+            padding: 3px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .instruction-text { font-size: 15px; line-height: 1.5; margin: 10px 0; }
+
+        .add-btn {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* The List Section */
+        .list-section {
+            width: 100%;
+            border-top: 2px dashed #ccc;
+            padding-top: 20px;
+            margin-top: 20px;
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: var(--danger);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        #printBtn {
+            background: var(--primary);
+            color: white;
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            display: none;
+        }
+
+        @media print {
+            .search-box, .remove-btn, #printBtn { display: none; }
+            body { background: white; padding: 0; }
+            .container { max-width: 100%; }
+            .pinned-card { box-shadow: none; border: 1px solid #eee; break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Medication Request Portal</h1>
+            <p id="status">Connecting to Google Sheets...</p>
+        </header>
+
+        <div class="search-box">
+            <input type="text" id="medSearch" placeholder="Type a medication name..." disabled>
+            <div id="searchResults"></div>
+        </div>
+
+        <div class="list-section">
+            <h2 id="listHeader" style="display:none;">Selected Medications (Batch)</h2>
+            <div id="medicationList"></div>
+            <button id="printBtn" onclick="window.print()">Print/Save Medication List</button>
+        </div>
+    </div>
+
+    <script>
+        // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
+        const SHEET_URL = 'YOUR_GOOGLE_SCRIPT_URL_HERE';
+
+        let myDatabase = [];
+        let fuse;
+
+        const searchInput = document.getElementById('medSearch');
+        const searchResults = document.getElementById('searchResults');
+        const medicationList = document.getElementById('medicationList');
+        const printBtn = document.getElementById('printBtn');
+        const listHeader = document.getElementById('listHeader');
+
+        async function init() {
+            try {
+                const response = await fetch(SHEET_URL);
+                myDatabase = await response.json();
+                
+                fuse = new Fuse(myDatabase, {
+                    keys: ["name"],
+                    threshold: 0.4
+                });
+
+                searchInput.disabled = false;
+                searchInput.placeholder = "Search (e.g., Amoxicillin)...";
+                document.getElementById('status').innerHTML = "✓ Database Online";
+            } catch (error) {
+                document.getElementById('status').innerHTML = "✖ Error connecting to Sheets.";
+            }
+        }
+
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value;
+            if (query.length < 2) { searchResults.innerHTML = ''; return; }
+
+            const results = fuse.search(query);
+            if (results.length > 0) {
+                let html = '';
+                results.forEach(res => {
+                    const item = res.item;
+                    html += `
+                        <div class="card search-result-card">
+                            <h3 class="med-name">${item.name}</h3>
+                            <span class="category-badge">${item.category}</span>
+                            <p class="instruction-text">${item.instructions.substring(0, 80)}...</p>
+                            <button class="add-btn" onclick="addToList('${btoa(JSON.stringify(item))}')">Add to Request +</button>
+                        </div>
+                    `;
+                });
+                searchResults.innerHTML = html;
+            } else {
+                searchResults.innerHTML = '<p>No matches found.</p>';
+            }
+        });
+
+        function addToList(encodedData) {
+            const item = JSON.parse(atob(encodedData));
+            const card = document.createElement('div');
+            card.className = 'card pinned-card';
+            card.innerHTML = `
+                <button class="remove-btn" onclick="this.parentElement.remove(); updateUI();">×</button>
+                <h3 class="med-name">${item.name}</h3>
+                <span class="category-badge">${item.category}</span>
+                <p class="instruction-text">${item.instructions}</p>
+            `;
+            medicationList.appendChild(card);
+            
+            // Clear search
+            searchInput.value = '';
+            searchResults.innerHTML = '';
+            updateUI();
+        }
+
+        function updateUI() {
+            const hasItems = medicationList.children.length > 0;
+            printBtn.style.display = hasItems ? 'block' : 'none';
+            listHeader.style.display = hasItems ? 'block' : 'none';
+        }
+
+        init();
+    </script>
+</body>
+</html>
