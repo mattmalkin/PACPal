@@ -20,7 +20,14 @@
             align-items: center;
         }
 
-        .container { width: 100%; max-width: 700px; }
+        .container {
+    max-width: 1600px; /* Drastically increases the maximum width */
+    width: 95%; /* Tells it to take up 95% of the available screen space */
+    margin: 0 auto; /* Keeps the whole app perfectly centered */
+    
+    /* Keep your existing padding, background, or border-radius down here! */
+    padding: 20px; 
+}
 
         header { text-align: center; margin-bottom: 30px; }
         
@@ -143,7 +150,12 @@
     .content-wrapper {
         flex-direction: column; /* Stacks them top-to-bottom on phones */
     }
-    .list-section {
+    /* Forces both sections to fill the whole screen on mobile */
+    .search-box, .list-section {
+        max-width: 100%; 
+        width: 100%;
+    }
+        .list-section {
         position: static; /* Removes the sticky effect on mobile */
     }
 }
