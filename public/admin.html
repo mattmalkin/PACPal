@@ -133,17 +133,28 @@ auth.onAuthStateChanged(async (user) => { // Added 'async'
     }
 });
 
-        async function login() {
-            const email = document.getElementById('loginEmail').value;
-            const pass = document.getElementById('loginPassword').value;
-            try {
-                await auth.signInWithEmailAndPassword(email, pass);
-                document.getElementById('loginError').style.display = 'none';
-            } catch (error) {
-                document.getElementById('loginError').innerText = "Incorrect credentials or unauthorized.";
-                document.getElementById('loginError').style.display = 'block';
-            }
-        }
+async function login() {
+    const email = document.getElementById('loginEmail').value;
+    const pass = document.getElementById('loginPassword').value;
+    const errorDiv = document.getElementById('loginError');
+    
+    try {
+        console.log("Attempting to sign in...");
+        const userCredential = await auth.signInWithEmailAndPassword(email, pass);
+        
+        // If we reach here, the EMAIL and PASSWORD are 100% correct.
+        console.log("Login Success! UID:", userCredential.user.uid);
+        errorDiv.style.display = 'none';
+
+    } catch (error) {
+        // This will tell us if it's a wrong password OR a Firebase blocking issue
+        console.error("Login Error Code:", error.code);
+        console.error("Login Error Message:", error.message);
+        
+        errorDiv.innerText = `Error: ${error.message}`; 
+        errorDiv.style.display = 'block';
+    }
+}
 
         function logout() { auth.signOut(); }
 
