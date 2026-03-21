@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-width=1.0">
-    <title>Secure Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PACPal | Secure Admin Dashboard</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f4f6f8; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .admin-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 700px; margin-bottom: 20px; }
@@ -14,36 +14,31 @@
         button { padding: 12px; background-color: #0984e3; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 15px;}
         button:hover { background-color: #74b9ff; }
         
+        /* Admin Management Styles */
+        .admin-list { list-style: none; padding: 0; margin-top: 15px; }
+        .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f9f9f9; border-radius: 6px; margin-bottom: 5px; font-family: monospace; font-size: 13px; }
+        .remove-btn { background: #ff7675; width: auto; padding: 5px 10px; font-size: 12px; margin: 0; }
+
         /* Action Buttons */
         .btn-group { display: flex; gap: 10px; margin-top: 20px; }
         .cancel-btn { background-color: #b2bec3; display: none; }
-        .cancel-btn:hover { background-color: #dfe6e9; color: black; }
         .logout-btn { background-color: #d63031; margin-top: 0; width: auto; padding: 8px 15px; font-size: 14px; float: right;}
-        .logout-btn:hover { background-color: #ff7675; }
 
-        /* A-Z Rolodex Styles */
+        /* Alphabet Rolodex */
         .alphabet-container { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 20px; justify-content: center; }
         .alpha-btn { width: 35px; height: 35px; padding: 0; margin: 0; background-color: #dfe6e9; color: #2d3436; font-size: 14px; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
-        .alpha-btn:hover { background-color: #b2bec3; }
         .alpha-btn.active { background-color: #0984e3; color: white; }
 
-        /* Database List Styles */
-        .med-list { list-style: none; padding: 0; margin: 0; }
+        /* Med List */
+        .med-list { list-style: none; padding: 0; }
         .med-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #dfe6e9; }
-        .med-item:last-child { border-bottom: none; }
         .med-info strong { font-size: 18px; color: #2d3436; display: block; }
-        .med-info span { font-size: 14px; color: #636e72; }
-        .med-actions { display: flex; gap: 10px; }
-        .edit-btn { background-color: #00b894; padding: 8px 12px; font-size: 14px; width: auto; margin: 0;}
-        .edit-btn:hover { background-color: #55efc4; }
-        .delete-btn { background-color: #d63031; padding: 8px 12px; font-size: 14px; width: auto; margin: 0;}
-        .delete-btn:hover { background-color: #ff7675; }
+        .edit-btn { background-color: #00b894; width: auto; margin: 0; padding: 8px 12px; }
+        .delete-btn { background-color: #d63031; width: auto; margin: 0; padding: 8px 12px; }
 
         #dataFormSection, #loginSection { display: none; }
-        #statusMessage, #loginError { margin-top: 15px; text-align: center; font-weight: bold; display: none; }
-        .success { color: #00b894; }
-        .error { color: #d63031; }
-        #emptyState { text-align: center; color: #b2bec3; font-style: italic; margin-top: 20px; }
+        .success { color: #00b894; text-align: center; font-weight: bold; }
+        .error { color: #d63031; text-align: center; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -53,49 +48,44 @@
         <input type="email" id="loginEmail" placeholder="Email Address">
         <input type="password" id="loginPassword" placeholder="Password">
         <button onclick="login()">Log In</button>
-        <div id="loginError" class="error"></div>
+        <div id="loginError" class="error" style="display:none; margin-top:10px;"></div>
     </div>
-  
-    <div id="dataFormSection" style="width: 100%; max-width: 700px;">
 
-        <div id="admin-management" style="border: 1px solid #ccc; padding: 15px; margin-top: 20px;">
-          <h3>Current System Admins</h3>
-          <ul id="admin-list">Loading admins...</ul>
-          <p><small>Note: Only UIDs in the 'admins' Firestore collection appear here.</small></p>
-        </div>
+    <div id="dataFormSection" style="width: 100%; max-width: 700px;">
         
         <div class="admin-container">
             <button class="logout-btn" onclick="logout()">Log Out</button>
+            <h2>System Access Control</h2>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="newAdminUid" placeholder="Enter new User UID to authorize">
+                <button onclick="addAdmin()" style="width: auto; margin-top: 5px;">Add Admin</button>
+            </div>
+            <ul id="admin-list" class="admin-list"><li>Loading...</li></ul>
+        </div>
+
+        <div class="admin-container">
             <h1 id="formTitle">Add New Medication</h1>
-            
             <form id="addMedForm">
                 <label>Medication Name</label>
                 <input type="text" id="medName" placeholder="e.g., Lisinopril" required>
-
                 <label>Category</label>
                 <input type="text" id="medCategory" placeholder="e.g., ACE Inhibitor" required>
-
                 <label>Perioperative Instructions</label>
                 <textarea id="medInstructions" placeholder="Enter instructions..." required></textarea>
-
                 <div class="btn-group">
                     <button type="submit" id="submitBtn">Save to Database</button>
                     <button type="button" id="cancelBtn" class="cancel-btn" onclick="cancelEdit()">Cancel Edit</button>
                 </div>
-                <div id="statusMessage"></div>
+                <div id="statusMessage" style="margin-top:10px;"></div>
             </form>
         </div>
 
         <div class="admin-container">
             <h2>Browse Database</h2>
-            
             <div id="alphabetContainer" class="alphabet-container"></div>
-
-            <ul id="databaseList" class="med-list">
-                </ul>
-            <div id="emptyState">Select a letter to view medications.</div>
+            <ul id="databaseList" class="med-list"></ul>
+            <div id="emptyState" style="text-align:center; color:#ccc;">Select a letter to view medications.</div>
         </div>
-        
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
@@ -109,8 +99,7 @@
             projectId: "pacpal-9f9bf",
             storageBucket: "pacpal-9f9bf.firebasestorage.app",
             messagingSenderId: "993977477357",
-            appId: "1:993977477357:web:72a2c5dee83d40e4b7c4e4",
-            measurementId: "G-QMLLEV67R5"
+            appId: "1:993977477357:web:72a2c5dee83d40e4b7c4e4"
         };
 
         firebase.initializeApp(firebaseConfig);
@@ -121,13 +110,14 @@
         let currentResults = [];
         let editingId = null;
 
-        // --- AUTHENTICATION ---
+        // --- AUTH & INITIALIZATION ---
         auth.onAuthStateChanged(user => {
             if (user) {
                 document.getElementById('loginSection').style.display = 'none';
                 document.getElementById('dataFormSection').style.display = 'block';
                 buildAlphabet(); 
-                fetchByLetter('A'); // Load "A" automatically on login
+                fetchByLetter('A');
+                displayAdmins(); // Only run once logged in
             } else {
                 document.getElementById('loginSection').style.display = 'block';
                 document.getElementById('dataFormSection').style.display = 'none';
@@ -139,27 +129,55 @@
             const pass = document.getElementById('loginPassword').value;
             try {
                 await auth.signInWithEmailAndPassword(email, pass);
-                document.getElementById('loginError').style.display = 'none';
             } catch (error) {
-                document.getElementById('loginError').innerText = "Incorrect email or password.";
+                document.getElementById('loginError').innerText = "Invalid credentials or unauthorized.";
                 document.getElementById('loginError').style.display = 'block';
             }
         }
 
         function logout() { auth.signOut(); }
 
-        // --- ROLODEX LOGIC (The New Feature) ---
+        // --- ADMIN MANAGEMENT ---
+        async function displayAdmins() {
+            const list = document.getElementById('admin-list');
+            try {
+                const snapshot = await db.collection("admins").get();
+                list.innerHTML = "";
+                snapshot.forEach(doc => {
+                    const li = document.createElement("li");
+                    li.className = "admin-item";
+                    li.innerHTML = `<span>${doc.id}</span> 
+                                   <button class="remove-btn" onclick="removeAdmin('${doc.id}')">Remove</button>`;
+                    list.appendChild(li);
+                });
+            } catch (e) { list.innerHTML = "<li>Error: Insufficient Permissions</li>"; }
+        }
+
+        async function addAdmin() {
+            const uid = document.getElementById('newAdminUid').value.trim();
+            if(!uid) return;
+            try {
+                await db.collection("admins").doc(uid).set({});
+                document.getElementById('newAdminUid').value = "";
+                displayAdmins();
+            } catch (e) { alert("Permission Denied."); }
+        }
+
+        async function removeAdmin(uid) {
+            if(confirm("Remove this admin?")) {
+                await db.collection("admins").doc(uid).delete();
+                displayAdmins();
+            }
+        }
+
+        // --- DATABASE LOGIC ---
         function buildAlphabet() {
             const container = document.getElementById('alphabetContainer');
             container.innerHTML = '';
-            const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-            
-            alphabet.forEach(letter => {
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(letter => {
                 const btn = document.createElement('button');
                 btn.innerText = letter;
-                btn.className = 'alpha-btn';
-                if(letter === currentLetter) btn.classList.add('active');
-                
+                btn.className = letter === currentLetter ? 'alpha-btn active' : 'alpha-btn';
                 btn.onclick = () => fetchByLetter(letter);
                 container.appendChild(btn);
             });
@@ -167,114 +185,59 @@
 
         async function fetchByLetter(letter) {
             currentLetter = letter;
-            buildAlphabet(); // Re-render alphabet to highlight the active letter
-            
-            const listElement = document.getElementById('databaseList');
-            const emptyState = document.getElementById('emptyState');
-            
-            listElement.innerHTML = "<li>Loading...</li>";
-            emptyState.style.display = 'none';
-
+            buildAlphabet();
+            const list = document.getElementById('databaseList');
+            list.innerHTML = "<li>Loading...</li>";
             try {
-                // Fetch only medications starting with the selected letter
                 const snapshot = await db.collection('medications')
-                    .where('name', '>=', letter)
-                    .where('name', '<=', letter + '\uf8ff')
-                    .orderBy('name')
-                    .get();
-                
+                    .where('name', '>=', letter).where('name', '<=', letter + '\uf8ff')
+                    .orderBy('name').get();
                 currentResults = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderList();
-            } catch (error) {
-                listElement.innerHTML = "<li class='error'>Error fetching data.</li>";
-                console.error(error);
-            }
+            } catch (e) { list.innerHTML = "<li class='error'>Error loading medications.</li>"; }
         }
 
-        // --- RENDER LIST ---
         function renderList() {
-            const listElement = document.getElementById('databaseList');
-            const emptyState = document.getElementById('emptyState');
-            
-            if (currentResults.length === 0) {
-                listElement.innerHTML = '';
-                emptyState.style.display = 'block';
-                emptyState.innerText = `No medications found starting with "${currentLetter}".`;
-                return;
-            }
-
-            let combinedHTML = '';
+            const list = document.getElementById('databaseList');
+            const empty = document.getElementById('emptyState');
+            list.innerHTML = "";
+            empty.style.display = currentResults.length ? 'none' : 'block';
             currentResults.forEach(med => {
-                combinedHTML += `
-                    <li class="med-item">
-                        <div class="med-info">
-                            <strong>${med.name}</strong>
-                            <span>${med.category}</span>
-                        </div>
-                        <div class="med-actions">
-                            <button class="edit-btn" onclick="startEdit('${med.id}')">Edit</button>
-                            <button class="delete-btn" onclick="deleteMed('${med.id}')">Delete</button>
-                        </div>
-                    </li>
-                `;
+                const li = document.createElement('li');
+                li.className = 'med-item';
+                li.innerHTML = `<div class="med-info"><strong>${med.name}</strong><span>${med.category}</span></div>
+                                <div class="med-actions"><button class="edit-btn" onclick="startEdit('${med.id}')">Edit</button>
+                                <button class="delete-btn" onclick="deleteMed('${med.id}')">Delete</button></div>`;
+                list.appendChild(li);
             });
-            
-            listElement.innerHTML = combinedHTML;
         }
 
-        // --- ADD OR UPDATE MEDICATION ---
         document.getElementById('addMedForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const btn = document.getElementById('submitBtn');
             const status = document.getElementById('statusMessage');
-            
-            btn.innerText = "Saving...";
-            
             const medData = {
                 name: document.getElementById('medName').value,
                 category: document.getElementById('medCategory').value,
                 instructions: document.getElementById('medInstructions').value
             };
-
             try {
-                if (editingId) {
-                    await db.collection('medications').doc(editingId).update(medData);
-                    status.innerText = "✓ Medication updated!";
-                } else {
-                    await db.collection('medications').add(medData);
-                    status.innerText = "✓ Medication added!";
-                }
-                
-                status.className = "success";
-                status.style.display = "block";
-                cancelEdit(); 
-                
-                // Refresh the current letter's list so you instantly see your edit
-                fetchByLetter(medData.name.charAt(0).toUpperCase()); 
-                
-                setTimeout(() => { status.style.display = "none"; }, 3000);
-            } catch (error) {
-                status.innerText = "✖ Error: Could not save.";
-                status.className = "error";
-                status.style.display = "block";
-            } finally {
-                btn.innerText = editingId ? "Update Database" : "Save to Database";
-            }
+                if (editingId) await db.collection('medications').doc(editingId).update(medData);
+                else await db.collection('medications').add(medData);
+                status.innerHTML = "<p class='success'>✓ Success!</p>";
+                cancelEdit();
+                fetchByLetter(medData.name.charAt(0).toUpperCase());
+            } catch (e) { status.innerHTML = "<p class='error'>✖ Failed to save.</p>"; }
         });
 
-        // --- EDIT LOGIC ---
         function startEdit(id) {
             const med = currentResults.find(m => m.id === id);
-            
             document.getElementById('medName').value = med.name;
             document.getElementById('medCategory').value = med.category;
             document.getElementById('medInstructions').value = med.instructions;
-            
             editingId = id;
-            document.getElementById('formTitle').innerText = "Edit Medication: " + med.name;
+            document.getElementById('formTitle').innerText = "Edit: " + med.name;
             document.getElementById('submitBtn').innerText = "Update Database";
             document.getElementById('cancelBtn').style.display = "block";
-            
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -286,44 +249,12 @@
             document.getElementById('cancelBtn').style.display = "none";
         }
 
-        // --- DELETE LOGIC ---
         async function deleteMed(id) {
-            if (confirm("Are you sure you want to permanently delete this medication?")) {
-                try {
-                    await db.collection('medications').doc(id).delete();
-                    fetchByLetter(currentLetter); // Refresh the current view
-                } catch (error) {
-                    alert("Error deleting medication.");
-                }
+            if (confirm("Permanently delete?")) {
+                await db.collection('medications').doc(id).delete();
+                fetchByLetter(currentLetter);
             }
         }
-        // Function to fetch and display current admins
-async function displayAdmins() {
-  const adminListElement = document.getElementById('admin-list');
-  
-  try {
-    const querySnapshot = await db.collection("admins").get();
-    adminListElement.innerHTML = ""; // Clear the loading message
-
-    if (querySnapshot.empty) {
-      adminListElement.innerHTML = "<li>No admins found in the collection.</li>";
-      return;
-    }
-
-    querySnapshot.forEach((doc) => {
-      // doc.id is the User UID we stored
-      const li = document.createElement("li");
-      li.textContent = `Admin UID: ${doc.id}`;
-      adminListElement.appendChild(li);
-    });
-  } catch (error) {
-    console.error("Error fetching admins:", error);
-    adminListElement.innerHTML = "<li>Access Denied: You must be an admin to see this list.</li>";
-  }
-}
-
-// Run this when the page loads
-displayAdmins();
     </script>
 </body>
 </html>
