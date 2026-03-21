@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - dev  # Now watching both branches
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -12,5 +13,6 @@ jobs:
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
-          channelId: live
+          # If pushing to main, go live. If pushing to dev, create a preview link.
+          channelId: ${{ github.ref == 'refs/heads/main' && 'live' || '' }}
           projectId: pacpal-9f9bf
