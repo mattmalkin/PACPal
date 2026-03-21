@@ -6,7 +6,11 @@ on:
   push:
     branches:
       - main
-      - dev  # Now watching both branches
+      - dev  # <--- Added your dev branch here
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
@@ -16,6 +20,6 @@ jobs:
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_PACPAL_9F9BF }}
-          # If pushing to main, go live. If pushing to dev, create a preview link.
+          # Logic: If branch is 'main' use 'live' channel, otherwise create a preview channel
           channelId: ${{ github.ref == 'refs/heads/main' && 'live' || '' }}
           projectId: pacpal-9f9bf
