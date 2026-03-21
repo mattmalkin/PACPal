@@ -24,7 +24,6 @@ jobs:
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PACPAL_9F9BF }}'
-          projectId: pacpal-9f9bf
-          # If the branch is 'main', we go to 'live'. 
-          # For 'dev', we leave channelId empty so it auto-creates a preview.
+          projectId: 'pacpal-9f9bf'
+          # This version of the logic is the most "stable" for the GUI editor
           channelId: ${{ github.ref_name == 'main' && 'live' || '' }}
