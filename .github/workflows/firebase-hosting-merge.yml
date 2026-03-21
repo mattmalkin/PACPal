@@ -5,7 +5,8 @@ name: Deploy to Firebase Hosting on merge
 on:
   push:
     branches:
-      - Firebase
+      - main
+      - dev  # Now watching both branches
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
@@ -15,5 +16,6 @@ jobs:
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_PACPAL_9F9BF }}
-          channelId: live
+          # If pushing to main, go live. If pushing to dev, create a preview link.
+          channelId: ${{ github.ref == 'refs/heads/main' && 'live' || '' }}
           projectId: pacpal-9f9bf
