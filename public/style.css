@@ -116,14 +116,21 @@ textarea { resize: vertical; height: 100px; }
 .delete-btn, .logout-btn { background: var(--danger); color: white; }
 .remove-btn { background: #ff7675; padding: 5px 10px; font-size: 12px; }
 
-/* Controls/Top Buttons */
+/* This targets the button specifically to stop the "Giant Blue Bar" */
+#theme-toggle {
+    width: auto;           /* Only as wide as the text/icon */
+    min-width: 140px;      /* But keeps it a nice clickable size */
+    margin: 10px 0;        /* Adds a little breathing room */
+    align-self: flex-end;  /* 👈 THE MAGIC LINE: Pushes it to the side and stops stretching */
+}
+
+/* Ensure the controls container isn't forcing children to stretch */
 .controls {
     display: flex;
-    flex-direction: column; 
-    align-items: flex-end; /* 👈 Pushes buttons to the right */
-    gap: 10px;
-    margin-bottom: 20px;
-    width: 100%;           /* Container is wide, but buttons inside aren't! */
+    flex-direction: column;
+    align-items: flex-end; /* Pushes everything inside to the right */
+    width: 100%;
+    max-width: 1600px;     /* Matches your main container */
 }
 
 /* --- 6. ROLODEX (A-Z) --- */
