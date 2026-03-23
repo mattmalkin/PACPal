@@ -75,14 +75,41 @@ input, textarea {
 
 textarea { resize: vertical; height: 100px; }
 
-/* --- 5. BUTTONS (Shared & Specific) --- */
+/* 1. SHARED BUTTON LOOK (Colors, Rounded Corners) */
 button, .theme-btn, .admin-button {
-    padding: 10px 18px;
+    padding: 10px 20px;
     border-radius: 8px;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
     border: none;
-    transition: all 0.2s ease;
+    transition: 0.2s;
+    display: inline-flex; /* 👈 This stops them from stretching by default */
+    align-items: center;
+    justify-content: center;
+    width: auto; /* 👈 Default to only as wide as the text */
+}
+
+/* 2. ADMIN FORM OVERRIDE (Large Action Buttons) */
+.admin-container .add-btn, 
+.admin-container .save-btn,
+#loginSection .primary-btn {
+    width: 100%; /* 👈 Only the main Admin/Login buttons stay big */
+    margin-top: 15px;
+    padding: 12px;
+}
+
+/* 3. INDEX/CONTROLS OVERRIDE (Small Utility Buttons) */
+.controls button, .admin-button {
+    width: 160px; /* 👈 Keeps the "Theme" and "Admin" buttons a neat, consistent size */
+    font-size: 13px;
+}
+
+/* 4. PRINT BUTTON (On Index) */
+#printBtn {
+    width: auto;
+    min-width: 200px; /* Gives it presence without filling the whole screen */
+    margin: 20px auto;
+    display: block; /* Centers it */
 }
 
 /* Primary Actions */
@@ -95,7 +122,7 @@ button, .theme-btn, .admin-button {
 .remove-btn { background: #ff7675; padding: 5px 10px; font-size: 12px; }
 
 /* Controls/Top Buttons */
-.controls { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; margin-bottom: 30px; width: 100%; }
+.controls { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; margin-bottom: 30px; }
 
 /* --- 6. ROLODEX (A-Z) --- */
 .alphabet-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 25px; justify-content: center; }
