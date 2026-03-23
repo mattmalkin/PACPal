@@ -76,17 +76,12 @@ input, textarea {
 textarea { resize: vertical; height: 100px; }
 
 /* 1. SHARED BUTTON LOOK (Colors, Rounded Corners) */
-button, .theme-btn, .admin-button {
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: 0.2s;
-    display: inline-flex; /* 👈 This stops them from stretching by default */
-    align-items: center;
+.theme-btn, .admin-button {
+    width: 140px !important; /* 👈 Forces a specific, compact width */
+    padding: 8px 12px;       /* Tighter vertical padding */
+    font-size: 13px;         /* Smaller, clinical font size */
     justify-content: center;
-    width: auto; /* 👈 Default to only as wide as the text */
+    white-space: nowrap;     /* Prevents text from wrapping */
 }
 
 /* 2. ADMIN FORM OVERRIDE (Large Action Buttons) */
@@ -122,7 +117,14 @@ button, .theme-btn, .admin-button {
 .remove-btn { background: #ff7675; padding: 5px 10px; font-size: 12px; }
 
 /* Controls/Top Buttons */
-.controls { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; margin-bottom: 30px; }
+.controls {
+    display: flex;
+    flex-direction: column; 
+    align-items: flex-end; /* 👈 Pushes buttons to the right */
+    gap: 10px;
+    margin-bottom: 20px;
+    width: 100%;           /* Container is wide, but buttons inside aren't! */
+}
 
 /* --- 6. ROLODEX (A-Z) --- */
 .alphabet-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 25px; justify-content: center; }
