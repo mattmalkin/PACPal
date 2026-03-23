@@ -13,32 +13,32 @@
 </head>
 <body>
 
-    <div class="container">
-      <div class="controls">
-       <button id="theme-toggle" class="theme-btn">🌓 Dark Mode</button>
-       <a href="admin.html" class="admin-button">⚙️ Admin Portal</a>
-      </div>   
-         <header>
-            <h1>PACPal Meds</h1>
-            <h2>Perioperative Medication Instructions</h2>
-            <h2>Database Update 3/18/26</h2>
-            <p>This is not intended as medical advice for the general public.</p>
-            <p id="status">Connecting to Google Sheets...</p>
-        </header>
+<div class="container">
+    <div class="controls">
+        <button id="theme-toggle" class="theme-btn">🌓 Dark Mode</button>
+        <a href="admin.html" class="admin-button">⚙️ Admin Portal</a>
+    </div>
 
-     <div class="content-wrapper">
+    <header>
+        <h1>PACPal Meds</h1>
+        <p>Perioperative Medication Instructions</p>
+        <p><strong>Database Update 3/18/26</strong></p>
+        <p><small>This is not intended as medical advice for the general public.</small></p>
+        <p>✓ Database Online</p>
+    </header>
+
+    <div class="content-wrapper">
         <div class="search-box">
-            <input type="text" id="medSearch" placeholder="Type a medication name..." disabled>
-            <div id="searchResults"></div>
+             <input type="text" id="medSearch" placeholder="Search (e.g., Lisinopril)...">
+             <div id="searchResults"></div>
         </div>
-
+        
         <div class="list-section">
-            <h2 id="listHeader" style="display:none;">Selected Medication List</h2>
-            <div id="medicationList"></div>
-            <button id="printBtn" onclick="window.print()">Print/Save Medication List</button>
-         </div>
-     </div>
-     </div>
+             <button id="printBtn" onclick="window.print()">Print/Save Medication List</button>
+             <div id="pinnedList"></div>
+        </div>
+    </div>
+</div>
 
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
