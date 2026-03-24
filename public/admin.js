@@ -247,3 +247,82 @@ async function deleteMed(id, medName) {
         }
     }
 }
+
+// --- SYSTEM NOTIFICATIONS ---
+async function notifyUpdate() {
+    const btn = document.getElementById('notifyBtn');
+    
+    // Safety check so you don't accidentally click it
+    if (!confirm("Are you sure you want to update the public database date to today?")) {
+        return;
+    }
+
+    btn.innerText = "Pushing...";
+    btn.disabled = true;
+
+    try {
+        // Get exactly today's date formatted as M/D/YY (e.g., 3/24/26)
+        const today = new Date();
+        const dateString = today.toLocaleDateString('en-US', { 
+            month: 'numeric', 
+            day: 'numeric', 
+            year: '2-digit' 
+        });
+
+        // Save it to a special "system" collection in Firestore
+        await db.collection('system').doc('metadata').set({
+            lastUpdated: dateString
+        }, { merge: true });
+
+        btn.innerText = `✓ Updated to ${dateString}`;
+        btn.style.backgroundColor = "var(--success)"; // Turn it green!
+        
+        // Reset the button after 3 seconds
+        setTimeout(() => {
+            btn.innerText = "📢 Push Update Notification";
+            btn.style.backgroundColor = "var(--warning)";
+            btn.disabled = false;
+        }, 3000);
+
+    } catch (error) {
+        console.error("Error pushing date:", error);
+        alert("System Error: Could not update the public date.");
+        btn.innerText = "📢 Push Update Notification";
+        btn.disabled = false;
+    }
+}
+
+// --- MANUAL DATE OVERRIDE ---
+async function setManualDate() {
+    const dateInput = document.getElementById('manualDateInput').value.trim();
+    const statusMsg = document.getElementById('manualDateStatus');
+
+    if (!dateInput) {
+        alert("Please enter a date first.");
+        return;
+    }
+
+    try {
+        // Save the manually typed date to Firestore
+        await db.collection('system').doc('metadata').set({
+            lastUpdated: dateInput
+        }, { merge: true });
+
+        // Show a temporary success message
+        statusMsg.innerText = `✓ Public date set to: ${dateInput}`;
+        statusMsg.style.color = "var(--success)";
+        statusMsg.style.display = "block";
+        document.getElementById('manualDateInput').value = ''; // clear the box
+
+        // Hide the message after 4 seconds
+        setTimeout(() => {
+            statusMsg.style.display = "none";
+        }, 4000);
+
+    } catch (error) {
+        console.error("Manual Date Error:", error);
+        statusMsg.innerText = "✖ Error saving manual date.";
+        statusMsg.style.color = "var(--danger)";
+        statusMsg.style.display = "block";
+    }
+}
