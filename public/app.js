@@ -1,17 +1,33 @@
 // 1. YOUR FIREBASE CONNECTION KEYS
-// ---> REPLACE THIS BLOCK WITH YOUR ACTUAL CONFIG FROM THE FIREBASE DASHBOARD <---
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyA5uz0RFyrCkxJocq8kZwFg_pcO2P6WTUg",
-  authDomain: "pacpal-9f9bf.firebaseapp.com",
-  projectId: "pacpal-9f9bf",
-  storageBucket: "pacpal-9f9bf.firebasestorage.app",
-  messagingSenderId: "993977477357",
-  appId: "1:993977477357:web:72a2c5dee83d40e4b7c4e4",
-  measurementId: "G-QMLLEV67R5"
+    apiKey: "AIzaSyA5uz0RFyrCkxJocq8kZwFg_pcO2P6WTUg",
+    authDomain: "pacpal-9f9bf.firebaseapp.com",
+    projectId: "pacpal-9f9bf",
+    storageBucket: "pacpal-9f9bf.firebasestorage.app",
+    messagingSenderId: "993977477357",
+    appId: "1:993977477357:web:72a2c5dee83d40e4b7c4e4",
+    measurementId: "G-QMLLEV67R5"
 };
 
-// 2. INITIALIZE FIREBASE
+// --- DARK MODE LOGIC (Moved to Top for Reliability) ---
+const body = document.body;
+const themeBtn = document.getElementById('theme-toggle');
+
+// Apply saved preference immediately
+if (localStorage.getItem('theme') === 'dark') {
+    body.classList.add('dark-theme');
+}
+
+// Listen for clicks (only if button exists)
+if (themeBtn) {
+    themeBtn.addEventListener('click', () => {
+        body.classList.toggle('dark-theme');
+        const isDark = body.classList.contains('dark-theme');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+}
+
+// --- INITIALIZE FIREBASE & SEARCH ---
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
@@ -26,12 +42,10 @@ const listHeader = document.getElementById('listHeader');
 
 async function init() {
     try {
-        document.getElementById('status').innerHTML = "↻ Connecting to Database...";
+        const statusEl = document.getElementById('status');
+        if (statusEl) statusEl.innerHTML = "↻ Connecting to Database...";
         
-        // 3. FETCH DATA FROM FIRESTORE INSTEAD OF A FILE
         const snapshot = await db.collection('medications').get();
-        
-        // Convert the Firebase documents into a clean array that Fuse can read
         myDatabase = snapshot.docs.map(doc => doc.data());
         
         fuse = new Fuse(myDatabase, {
@@ -40,46 +54,52 @@ async function init() {
             ignoreLocation: true
         });
 
-        searchInput.disabled = false;
-        searchInput.placeholder = "Search (e.g., Lisinopril)...";
-        document.getElementById('status').innerHTML = "✓ Database Online";
+        if (searchInput) {
+            searchInput.disabled = false;
+            searchInput.placeholder = "Search (e.g., Lisinopril)...";
+        }
+        if (statusEl) statusEl.innerHTML = "✓ Database Online";
     } catch (error) {
-        document.getElementById('status').innerHTML = "✖ Error connecting to database.";
+        if (document.getElementById('status')) {
+            document.getElementById('status').innerHTML = "✖ Error connecting to database.";
+        }
         console.error("Firebase error:", error);
     }
 }
 
-searchInput.addEventListener('input', () => {
-    const query = searchInput.value;
-    if (query.length < 2) { searchResults.innerHTML = ''; return; }
+// --- SEARCH LOGIC ---
+if (searchInput) {
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value;
+        if (query.length < 2) { searchResults.innerHTML = ''; return; }
 
-    const results = fuse.search(query);
-    if (results.length > 0) {
-        let html = '';
-        results.forEach(res => {
-            const item = res.item;
-            
-            // THE EMPTY CELL FIX: Defaults to an empty string if the cell is blank
-            const safeInstructions = item.instructions || 'No instructions provided.';
-            
-            html += `
-                <div class="card search-result-card">
-                    <h3 class="med-name">${item.name}</h3>
-                    <span class="category-badge">${item.category || 'General'}</span>
-                    <p class="instruction-text">${safeInstructions.substring(0, 80)}...</p>
-                    <button class="add-btn" onclick="addToList('${btoa(JSON.stringify(item))}')">Add to List +</button>
-                </div>
-            `;
-        });
-        searchResults.innerHTML = html;
-    } else {
-        searchResults.innerHTML = '<p>No matches found.</p>';
-    }
-});
+        const results = fuse.search(query);
+        if (results.length > 0) {
+            let html = '';
+            results.forEach(res => {
+                const item = res.item;
+                const safeInstructions = item.instructions || 'No instructions provided.';
+                
+                html += `
+                    <div class="card search-result-card">
+                        <h3 class="med-name">${item.name}</h3>
+                        <span class="category-badge">${item.category || 'General'}</span>
+                        <p class="instruction-text">${safeInstructions.substring(0, 80)}...</p>
+                        <button class="add-btn" onclick="addToList('${btoa(JSON.stringify(item))}')">Add to List +</button>
+                    </div>
+                `;
+            });
+            searchResults.innerHTML = html;
+        } else {
+            searchResults.innerHTML = '<p>No matches found.</p>';
+        }
+    });
+}
 
-function addToList(encodedData) {
+// --- LIST LOGIC ---
+window.addToList = function(encodedData) {
     const item = JSON.parse(atob(encodedData));
-    const safeInstructions = item.instructions || 'No instructions provided.'; // Safety check here too
+    const safeInstructions = item.instructions || 'No instructions provided.';
     
     const card = document.createElement('div');
     card.className = 'card pinned-card';
@@ -91,7 +111,6 @@ function addToList(encodedData) {
     `;
     medicationList.appendChild(card);
     
-    // Clear search
     searchInput.value = '';
     searchResults.innerHTML = '';
     updateUI();
@@ -99,29 +118,9 @@ function addToList(encodedData) {
 
 function updateUI() {
     const hasItems = medicationList.children.length > 0;
-    printBtn.style.display = hasItems ? 'block' : 'none';
-    listHeader.style.display = hasItems ? 'block' : 'none';
+    if (printBtn) printBtn.style.display = hasItems ? 'block' : 'none';
+    if (listHeader) listHeader.style.display = hasItems ? 'block' : 'none';
 }
 
+// START ENGINE
 init();
-
-// --- DARK MODE LOGIC ---
-// 1. Check for saved preference on load
-const themeBtn = document.getElementById('theme-toggle');
-const body = document.body;
-
-if (localStorage.getItem('theme') === 'dark') {
-    body.classList.add('dark-theme');
-}
-
-// 2. Listen for clicks
-themeBtn.addEventListener('click', () => {
-    body.classList.toggle('dark-theme');
-    
-    // 3. Save the preference so it stays dark on refresh
-    if (body.classList.contains('dark-theme')) {
-        localStorage.setItem('theme', 'dark');
-    } else {
-        localStorage.setItem('theme', 'light');
-    }
-});
