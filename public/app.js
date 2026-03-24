@@ -9,22 +9,23 @@ const firebaseConfig = {
     measurementId: "G-QMLLEV67R5"
 };
 
-// --- 1. DARK MODE ---
+// --- 1. DARK MODE (Top Priority - Unified with Admin) ---
+const themeToggle = document.getElementById('themeToggle'); 
 const body = document.body;
-const themeBtn = document.getElementById('themeToggle'); 
 
+// Apply saved preference immediately
 if (localStorage.getItem('pacpal_theme') === 'dark') {
     body.classList.add('dark-theme');
-    if (themeBtn) themeBtn.innerText = '☀️ Light Mode';
+    if (themeToggle) themeToggle.innerText = '☀️ Light Mode';
 }
 
-if (themeBtn) {
-    themeBtn.onclick = () => {
+if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
         body.classList.toggle('dark-theme');
         const isDark = body.classList.contains('dark-theme');
         localStorage.setItem('pacpal_theme', isDark ? 'dark' : 'light');
-        themeBtn.innerText = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
-    };
+        themeToggle.innerText = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+    });
 }
 
 // --- 2. FIREBASE & SEARCH INIT ---
