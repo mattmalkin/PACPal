@@ -9,118 +9,111 @@ const firebaseConfig = {
     measurementId: "G-QMLLEV67R5"
 };
 
-// --- DARK MODE LOGIC (Moved to Top for Reliability) ---
+// --- 1. DARK MODE (Top Priority) ---
 const body = document.body;
 const themeBtn = document.getElementById('theme-toggle');
 
-// Apply saved preference immediately
-if (localStorage.getItem('theme') === 'dark') {
-    body.classList.add('dark-theme');
-}
+if (localStorage.getItem('theme') === 'dark') { body.classList.add('dark-theme'); }
 
-// Listen for clicks (only if button exists)
 if (themeBtn) {
-    themeBtn.addEventListener('click', () => {
+    themeBtn.onclick = () => {
         body.classList.toggle('dark-theme');
-        const isDark = body.classList.contains('dark-theme');
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    });
+        localStorage.setItem('theme', body.classList.contains('dark-theme') ? 'dark' : 'light');
+    };
 }
 
-// --- INITIALIZE FIREBASE & SEARCH ---
-firebase.initializeApp(firebaseConfig);
+// --- 2. FIREBASE & SEARCH INIT ---
+firebase.initializeApp(firebaseConfig); // Use your existing config object
 const db = firebase.firestore();
-
 let myDatabase = [];
-let fuse;
-
-const searchInput = document.getElementById('medSearch');
-const searchResults = document.getElementById('searchResults');
-const medicationList = document.getElementById('medicationList');
-const printBtn = document.getElementById('printBtn');
-const listHeader = document.getElementById('listHeader');
+let fuse = null;
 
 async function init() {
     try {
+        // Safety check for status element
         const statusEl = document.getElementById('status');
-        if (statusEl) statusEl.innerHTML = "↻ Connecting to Database...";
-        
+        if (statusEl) statusEl.innerHTML = "↻ Connecting...";
+
         const snapshot = await db.collection('medications').get();
         myDatabase = snapshot.docs.map(doc => doc.data());
         
-        fuse = new Fuse(myDatabase, {
-            keys: ["name", "category"],
-            threshold: 0.3,
-            ignoreLocation: true
-        });
+        // Initialize Fuse
+        fuse = new Fuse(myDatabase, { keys: ["name", "category"], threshold: 0.3 });
 
+        if (statusEl) statusEl.innerHTML = "✓ Database Online";
+        
+        const searchInput = document.getElementById('medSearch');
         if (searchInput) {
             searchInput.disabled = false;
             searchInput.placeholder = "Search (e.g., Lisinopril)...";
         }
-        if (statusEl) statusEl.innerHTML = "✓ Database Online";
     } catch (error) {
-        if (document.getElementById('status')) {
-            document.getElementById('status').innerHTML = "✖ Error connecting to database.";
-        }
-        console.error("Firebase error:", error);
+        console.error("Init Error:", error);
+        if (document.getElementById('status')) document.getElementById('status').innerHTML = "✖ Error.";
     }
 }
 
-// --- SEARCH LOGIC ---
+// --- 3. SEARCH LOGIC (With Null Checks) ---
+const searchInput = document.getElementById('medSearch');
+const searchResults = document.getElementById('searchResults');
+
 if (searchInput) {
     searchInput.addEventListener('input', () => {
         const query = searchInput.value;
-        if (query.length < 2) { searchResults.innerHTML = ''; return; }
+        // Check if fuse is actually ready yet
+        if (!fuse || query.length < 2) { 
+            if (searchResults) searchResults.innerHTML = ''; 
+            return; 
+        }
 
         const results = fuse.search(query);
-        if (results.length > 0) {
-            let html = '';
-            results.forEach(res => {
-                const item = res.item;
-                const safeInstructions = item.instructions || 'No instructions provided.';
-                
-                html += `
-                    <div class="card search-result-card">
-                        <h3 class="med-name">${item.name}</h3>
-                        <span class="category-badge">${item.category || 'General'}</span>
-                        <p class="instruction-text">${safeInstructions.substring(0, 80)}...</p>
-                        <button class="add-btn" onclick="addToList('${btoa(JSON.stringify(item))}')">Add to List +</button>
-                    </div>
-                `;
-            });
-            searchResults.innerHTML = html;
-        } else {
-            searchResults.innerHTML = '<p>No matches found.</p>';
+        if (searchResults) {
+            if (results.length > 0) {
+                searchResults.innerHTML = results.map(res => {
+                    const item = res.item;
+                    return `
+                        <div class="card search-result-card">
+                            <h3>${item.name}</h3>
+                            <span class="category-badge">${item.category || 'General'}</span>
+                            <p>${(item.instructions || '').substring(0, 80)}...</p>
+                            <button class="add-btn" onclick="addToList('${btoa(JSON.stringify(item))}')">Add to List +</button>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                searchResults.innerHTML = '<p>No matches found.</p>';
+            }
         }
     });
 }
 
-// --- LIST LOGIC ---
+// --- 4. LIST LOGIC ---
 window.addToList = function(encodedData) {
     const item = JSON.parse(atob(encodedData));
-    const safeInstructions = item.instructions || 'No instructions provided.';
-    
+    const medicationList = document.getElementById('medicationList');
+    if (!medicationList) return;
+
     const card = document.createElement('div');
     card.className = 'card pinned-card';
     card.innerHTML = `
         <button class="remove-btn" onclick="this.parentElement.remove(); updateUI();">×</button>
-        <h3 class="med-name">${item.name}</h3>
+        <h3>${item.name}</h3>
         <span class="category-badge">${item.category || 'General'}</span>
-        <p class="instruction-text">${safeInstructions}</p>
+        <p>${item.instructions || 'No instructions.'}</p>
     `;
     medicationList.appendChild(card);
     
-    searchInput.value = '';
-    searchResults.innerHTML = '';
+    if (searchInput) searchInput.value = '';
+    if (searchResults) searchResults.innerHTML = '';
     updateUI();
-}
+};
 
 function updateUI() {
-    const hasItems = medicationList.children.length > 0;
-    if (printBtn) printBtn.style.display = hasItems ? 'block' : 'none';
-    if (listHeader) listHeader.style.display = hasItems ? 'block' : 'none';
+    const printBtn = document.getElementById('printBtn');
+    const medicationList = document.getElementById('medicationList');
+    if (printBtn && medicationList) {
+        printBtn.style.display = medicationList.children.length > 0 ? 'block' : 'none';
+    }
 }
 
-// START ENGINE
 init();
