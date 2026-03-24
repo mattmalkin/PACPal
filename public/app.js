@@ -106,24 +106,19 @@ function updateUI() {
 init();
 
 // --- DARK MODE LOGIC ---
-const themeToggle = document.getElementById('themeToggle');
-
-// 1. Check if the user already chose dark mode in a previous visit
-if (localStorage.getItem('pacpal_theme') === 'dark') {
-    document.body.classList.add('dark-theme');
-    themeToggle.innerText = '☀️ Light Mode';
+// 1. Check for saved preference on load
+if (localStorage.getItem('theme') === 'dark') {
+    body.classList.add('dark-theme');
 }
 
-// 2. Listen for clicks on the toggle button
-themeToggle.addEventListener('click', () => {
-    document.body.classList.toggle('dark-theme');
+// 2. Listen for clicks
+themeBtn.addEventListener('click', () => {
+    body.classList.toggle('dark-theme');
     
-    // 3. Save their preference and swap the icon
-    if (document.body.classList.contains('dark-theme')) {
-        localStorage.setItem('pacpal_theme', 'dark');
-        themeToggle.innerText = '☀️ Light Mode';
+    // 3. Save the preference so it stays dark on refresh
+    if (body.classList.contains('dark-theme')) {
+        localStorage.setItem('theme', 'dark');
     } else {
-        localStorage.setItem('pacpal_theme', 'light');
-        themeToggle.innerText = '🌙 Dark Mode';
+        localStorage.setItem('theme', 'light');
     }
 });
