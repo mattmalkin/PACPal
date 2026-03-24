@@ -178,3 +178,33 @@ button, .theme-btn, .admin-button {
     margin-top: 10px;
     font-size: 13px;
 }
+
+/* --- BIGGER MEDICATION BUBBLES --- */
+.med-item {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 20px; /* Increased padding to make the bubble bigger */
+    margin-bottom: 15px;
+    border-radius: 12px; /* Rounder corners */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05); /* Slight pop off the page */
+}
+
+.med-info strong {
+    font-size: 1.3em; /* Larger medication text */
+    display: block;
+    margin-bottom: 8px; /* Space between name and badge */
+}
+
+/* The Category Pill/Bubble */
+.category-badge {
+    background-color: var(--primary-accent);
+    color: #ffffff;
+    padding: 6px 14px;
+    border-radius: 20px; /* Fully rounded edges */
+    font-size: 0.85em;
+    font-weight: 600;
+    display: inline-block;
+}
