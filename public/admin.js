@@ -119,7 +119,10 @@ function renderList() {
     document.getElementById('emptyState').style.display = currentResults.length ? 'none' : 'block';
     list.innerHTML = currentResults.map(med => `
         <li class="med-item">
-            <div class="med-info"><strong>${med.name}</strong><span>${med.category}</span></div>
+            <div class="med-info">
+                <strong>${med.name}</strong>
+                <span class="category-badge">${med.category}</span>
+            </div>
             <div class="med-actions">
                 <button class="edit-btn" onclick="startEdit('${med.id}')">Edit</button>
                 <button class="delete-btn" onclick="deleteMed('${med.id}', '${med.name}')">Delete</button>
@@ -128,6 +131,7 @@ function renderList() {
 }
 
 // --- SAVE / UPDATE LOGIC ---
+// Replace your existing 'submit' event listener with this:
 document.getElementById('addMedForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
@@ -140,21 +144,29 @@ document.getElementById('addMedForm').addEventListener('submit', async function(
         instructions: document.getElementById('medInstructions').value.trim()
     };
 
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.innerText = "Saving to Database..."; // Visual feedback
+    submitBtn.disabled = true;
+
     try {
         if (editingId) {
             // UPDATE EXISTING
             await db.collection('medications').doc(editingId).update(medData);
-            alert(`${sanitizedName} updated!`);
-            cancelEdit(); // Reset form
+            await fetchByLetter(sanitizedName.charAt(0)); // Wait for fresh data
+            cancelEdit(); // Reset form AFTER the list updates
         } else {
             // ADD NEW
             await db.collection('medications').add(medData);
-            alert(`${sanitizedName} added!`);
+            await fetchByLetter(sanitizedName.charAt(0)); // Wait for fresh data
             document.getElementById('addMedForm').reset();
         }
-        fetchByLetter(sanitizedName.charAt(0)); 
     } catch (error) {
+        console.error("Save Error:", error);
         alert("Error saving to database.");
+    } finally {
+        // Return button to normal state
+        submitBtn.innerText = editingId ? "Update Database" : "Save to Database";
+        submitBtn.disabled = false;
     }
 });
 
