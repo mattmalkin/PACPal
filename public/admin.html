@@ -3,90 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Admin Dashboard</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f4f6f8; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .admin-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 700px; margin-bottom: 20px; }
-        h1, h2 { margin-top: 0; color: #2d3436; }
-        label { display: block; margin-top: 15px; font-weight: bold; color: #636e72; font-size: 14px; }
-        input, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #dfe6e9; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
-        textarea { resize: vertical; height: 100px; }
-        button { padding: 12px; background-color: #0984e3; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 15px;}
-        button:hover { background-color: #74b9ff; }
-        
-        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
-        .cancel-btn { background-color: #b2bec3; display: none; }
-        .logout-btn { background-color: #d63031; margin-top: 0; width: auto; padding: 8px 15px; font-size: 14px; float: right;}
-
-        /* Admin Management Styles */
-        .admin-list { list-style: none; padding: 0; margin-top: 15px; }
-        .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f9f9f9; border-radius: 6px; margin-bottom: 5px; font-family: monospace; font-size: 13px; }
-        .remove-btn { background: #ff7675; width: auto; padding: 5px 10px; font-size: 12px; margin: 0; }
-
-        .alphabet-container { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 20px; justify-content: center; }
-        .alpha-btn { width: 35px; height: 35px; padding: 0; margin: 0; background-color: #dfe6e9; color: #2d3436; font-size: 14px; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
-        .alpha-btn.active { background-color: #0984e3; color: white; }
-
-        .med-list { list-style: none; padding: 0; margin: 0; }
-        .med-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #dfe6e9; }
-        .med-info strong { font-size: 18px; color: #2d3436; display: block; }
-        .med-actions { display: flex; gap: 10px; }
-        .edit-btn { background-color: #00b894; width: auto; padding: 8px 12px; margin: 0; font-size: 14px;}
-        .delete-btn { background-color: #d63031; width: auto; padding: 8px 12px; margin: 0; font-size: 14px;}
-
-        #dataFormSection, #loginSection { display: none; }
-        #statusMessage, #loginError { margin-top: 15px; text-align: center; font-weight: bold; }
-        .success { color: #00b894; }
-        .error { color: #d63031; }
-    </style>
+    <title>PACPal Admin - Medication Management</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div id="loginSection" class="admin-container">
-        <h1>PACPal Admin Login</h1>
-        <input type="email" id="loginEmail" placeholder="Email Address">
-        <input type="password" id="loginPassword" placeholder="Password">
-        <button onclick="login()">Log In</button>
-        <div id="loginError" class="error"></div>
+    <div class="admin-container">
+        <div class="controls">
+        <button class="theme-btn" id="themeToggle">🌙 Dark Mode</button>
+        <button class="logout-btn" onclick="logout()">Log Out</button>
     </div>
 
-    <div id="dataFormSection" style="width: 100%; max-width: 700px;">
-        
-        <div class="admin-container">
-            <button class="logout-btn" onclick="logout()">Log Out</button>
-            <h2>System Access Control</h2>
-            <p style="font-size: 12px; color: #636e72;">Authorized UIDs in the 'admins' collection:</p>
-            <ul id="admin-list" class="admin-list"><li>Loading...</li></ul>
-        </div>
-
-        <div class="admin-container">
+        <header>
             <h1 id="formTitle">Add New Medication</h1>
-            <form id="addMedForm">
-                <label>Medication Name</label>
-                <input type="text" id="medName" placeholder="e.g., Lisinopril" required>
-                <label>Category</label>
-                <input type="text" id="medCategory" placeholder="e.g., ACE Inhibitor" required>
-                <label>Perioperative Instructions</label>
-                <textarea id="medInstructions" placeholder="Enter instructions..." required></textarea>
-                <div class="btn-group">
-                    <button type="submit" id="submitBtn">Save to Database</button>
-                    <button type="button" id="cancelBtn" class="cancel-btn" onclick="cancelEdit()">Cancel Edit</button>
-                </div>
-                <div id="statusMessage"></div>
-            </form>
-        </div>
+        </header>
 
-        <div class="admin-container">
-            <h2>Browse Database</h2>
+        <section id="loginSection">
+            <div class="card">
+                <input type="email" id="loginEmail" placeholder="Admin Email">
+                <input type="password" id="loginPassword" placeholder="Password">
+                <button onclick="login()" class="primary-btn">Login to PACPal</button>
+                <p id="loginError" class="error" style="display:none;"></p>
+            </div>
+        </section>
+
+        <section id="dataFormSection">
+            <form id="addMedForm" class="card">
+                <label>Medication Name</label>
+                <input type="text" id="medName" required placeholder="e.g. Lisinopril">
+
+                <label>Category</label>
+                <input type="text" id="medCategory" required placeholder="e.g. ACE Inhibitor">
+
+                <label>Clinical Instructions</label>
+                <textarea id="medInstructions" required placeholder="Dosage, timing, and safety warnings..."></textarea>
+
+                <div class="btn-group">
+                    <button type="submit" id="submitBtn" class="add-btn">Save to Database</button>
+                    <button type="button" id="cancelBtn" onclick="cancelEdit()" class="cancel-btn" style="display:none;">Cancel Edit</button>
+                </div>
+            </form>
+
+            <hr>
+
+            <h2>Current Medications</h2>
             <div id="alphabetContainer" class="alphabet-container"></div>
             <ul id="databaseList" class="med-list"></ul>
-            <div id="emptyState" style="text-align: center; color: #b2bec3; font-style: italic; margin-top: 20px;">Select a letter to view medications.</div>
-        </div>
+            <p id="emptyState" style="display:none;">No medications found for this letter.</p>
+
+            <hr>
+
+            <h2>Authorized Admins</h2>
+            <ul id="admin-list" class="admin-list"></ul>
+        </section>
     </div>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
-<script src="admin.js"></script>
-    
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+
+    <script src="admin.js"></script>
 </body>
 </html>
