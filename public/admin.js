@@ -247,3 +247,47 @@ async function deleteMed(id, medName) {
         }
     }
 }
+
+// --- SYSTEM NOTIFICATIONS ---
+async function notifyUpdate() {
+    const btn = document.getElementById('notifyBtn');
+    
+    // Safety check so you don't accidentally click it
+    if (!confirm("Are you sure you want to update the public database date to today?")) {
+        return;
+    }
+
+    btn.innerText = "Pushing...";
+    btn.disabled = true;
+
+    try {
+        // Get exactly today's date formatted as M/D/YY (e.g., 3/24/26)
+        const today = new Date();
+        const dateString = today.toLocaleDateString('en-US', { 
+            month: 'numeric', 
+            day: 'numeric', 
+            year: '2-digit' 
+        });
+
+        // Save it to a special "system" collection in Firestore
+        await db.collection('system').doc('metadata').set({
+            lastUpdated: dateString
+        }, { merge: true });
+
+        btn.innerText = `✓ Updated to ${dateString}`;
+        btn.style.backgroundColor = "var(--success)"; // Turn it green!
+        
+        // Reset the button after 3 seconds
+        setTimeout(() => {
+            btn.innerText = "📢 Push Update Notification";
+            btn.style.backgroundColor = "var(--warning)";
+            btn.disabled = false;
+        }, 3000);
+
+    } catch (error) {
+        console.error("Error pushing date:", error);
+        alert("System Error: Could not update the public date.");
+        btn.innerText = "📢 Push Update Notification";
+        btn.disabled = false;
+    }
+}
