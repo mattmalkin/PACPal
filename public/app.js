@@ -48,9 +48,18 @@ async function init() {
         const statusEl = document.getElementById('status');
         if (statusEl) statusEl.innerHTML = "↻ Connecting to Database...";
 
+        // 1. Fetch Medications
         const snapshot = await db.collection('medications').get();
         myDatabase = snapshot.docs.map(doc => doc.data());
         
+        // --- NEW: Fetch the Last Updated Date ---
+        const metaDoc = await db.collection('system').doc('metadata').get();
+        if (metaDoc.exists && metaDoc.data().lastUpdated) {
+            const dateDisplay = document.getElementById('updateDateDisplay');
+            if (dateDisplay) dateDisplay.innerHTML = `<strong>Database Update ${metaDoc.data().lastUpdated}</strong>`;
+        }
+        // ----------------------------------------
+
         fuse = new Fuse(myDatabase, { 
             keys: ["name", "category"], 
             threshold: 0.3 
