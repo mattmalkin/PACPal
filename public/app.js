@@ -107,6 +107,9 @@ init();
 
 // --- DARK MODE LOGIC ---
 // 1. Check for saved preference on load
+const themeBtn = document.getElementById('theme-toggle');
+const body = document.body;
+
 if (localStorage.getItem('theme') === 'dark') {
     body.classList.add('dark-theme');
 }
