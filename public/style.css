@@ -1,28 +1,39 @@
-/* --- 1. THEME VARIABLES --- */
+/* =========================================
+   1. THEME VARIABLES (Unified)
+========================================= */
 :root {
+    /* Base Colors */
     --primary: #2c3e50;
     --accent: #3498db;
     --bg: #f4f7f6;
     --text: #333;
-    --success: #27ae60;
-    --warning: #e67e22;
+    --text-muted: #636e72;
     --white: #ffffff;
-    --danger: #e74c3c;
     --border: #dfe6e9;
     --shadow: 0 4px 15px rgba(0,0,0,0.05);
+    
+    /* Status Colors */
+    --success: #27ae60;
+    --warning: #e67e22;
+    --danger: #e74c3c;
 }
 
 body.dark-theme {
+    /* Dark Mode Overrides */
     --primary: #6ab04c;
     --accent: #48dbfb;
     --bg: #12141c;
     --text: #dcdde1;
+    --text-muted: #a4b0be;
     --white: #1e222d;
-    --success: #2ecc71;
     --border: #2f3542;
+    --success: #2ecc71;
+    --danger: #ff5252;
 }
 
-/* --- 2. CORE LAYOUT --- */
+/* =========================================
+   2. CORE GLOBAL STYLES
+========================================= */
 body {
     font-family: 'Inter', -apple-system, system-ui, sans-serif;
     background-color: var(--bg);
@@ -32,22 +43,32 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    transition: background 0.3s ease;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Base Containers */
 .container, .admin-container {
-    max-width: 1600px;
     width: 95%;
     margin: 0 auto;
     padding: 20px;
 }
 
-/* Specific override for the Admin Dashboard to keep it from stretching */
-.admin-container { 
-    max-width: 800px; 
-} 
+/* Stretches Admin Portal for more screen real estate */
+.admin-container {
+    max-width: 1400px; /* Allows the database to stretch wide */
+}
 
-/* --- 3. SHARED COMPONENTS (Cards & Lists) --- */
+/* Used for the side-by-side Patient Search layout */
+.content-wrapper { 
+    display: flex; 
+    gap: 30px; 
+    width: 100%; 
+    max-width: 1600px;
+}
+
+/* =========================================
+   3. SHARED COMPONENTS (Cards, Inputs, Labels)
+========================================= */
 .card, .med-item, .admin-item, .search-box {
     background: var(--white);
     padding: 20px;
@@ -55,13 +76,16 @@ body {
     box-shadow: var(--shadow);
     margin-bottom: 15px;
     border: 1px solid var(--border);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-.med-item { display: flex; justify-content: space-between; align-items: center; }
-.admin-item { font-family: monospace; font-size: 13px; }
-
-/* --- 4. FORM ELEMENTS --- */
-label { display: block; margin-top: 15px; font-weight: bold; color: var(--primary); font-size: 14px; }
+label { 
+    display: block; 
+    margin-top: 15px; 
+    font-weight: bold; 
+    color: var(--primary); 
+    font-size: 14px; 
+}
 
 input, textarea {
     width: 100%;
@@ -74,13 +98,21 @@ input, textarea {
     font-size: 16px;
     box-sizing: border-box;
     outline: none;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
-textarea { resize: vertical; height: 100px; }
+input:focus, textarea:focus {
+    border-color: var(--accent);
+}
 
-/* --- 5. BUTTONS & CONTROLS --- */
+textarea { 
+    resize: vertical; 
+    height: 100px; 
+}
 
-/* Base button style - Default to "Shrink-Wrap" width */
+/* =========================================
+   4. BUTTONS & CONTROLS
+========================================= */
 button, .theme-btn, .admin-button {
     padding: 10px 20px;
     border-radius: 8px;
@@ -91,120 +123,125 @@ button, .theme-btn, .admin-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: auto;           /* Prevents the giant blue bar */
-    min-width: 140px;      /* Keeps buttons professional and clickable */
-    text-decoration: none; /* For the Admin Portal link */
+    width: auto;
+    min-width: 140px;
+    text-decoration: none;
 }
 
-/* Controls Container (The top right corner) */
 .controls {
     display: flex;
     flex-direction: column;
-    align-items: flex-end; /* Pushes buttons to the right */
+    align-items: flex-end;
     gap: 10px;
     margin-bottom: 20px;
     width: 100%;
     max-width: 1600px;
 }
 
-/* Specific button colors */
+/* Button Variants */
 .primary-btn, .theme-btn, .save-btn { background: var(--accent); color: white; }
 .add-btn { background: var(--success); color: white; }
-.edit-btn { background: #00b894; color: white; }
+.edit-btn { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
 .delete-btn, .logout-btn { background: var(--danger); color: white; }
 .remove-btn { background: #ff7675; padding: 5px 10px; font-size: 12px; }
-.admin-button { background-color: #636e72; color: white; }
+.admin-button { background-color: var(--text-muted); color: white; }
 
-/* Force large action buttons ONLY in the Admin form */
-.admin-container .add-btn, 
-.admin-container .save-btn,
+/* Force large action buttons in specific areas */
+.admin-container #addMedForm .add-btn,
+.admin-container #addMedForm .cancel-btn,
 #loginSection .primary-btn {
     width: 100%; 
     margin-top: 15px;
     padding: 12px;
 }
 
-/* --- 6. ROLODEX (A-Z) --- */
-.alphabet-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 25px; justify-content: center; }
+.cancel-btn {
+    background: transparent;
+    border: 1px solid var(--text-muted);
+    color: var(--text-muted);
+}
+
+/* =========================================
+   5. MEDICATION BUBBLES & ROLODEX
+========================================= */
+.alphabet-container { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 8px; 
+    margin-bottom: 25px; 
+    justify-content: center; 
+}
+
 .alpha-btn {
     width: 38px; height: 38px;
     background: var(--white);
     border: 1px solid var(--border);
     color: var(--accent);
-    min-width: unset; /* Rolodex buttons don't need the 140px min-width */
+    min-width: unset;
 }
-.alpha-btn.active { background: var(--accent); color: white; }
 
-/* --- 7. PATIENT SIDE-BY-SIDE & PRINT --- */
-.content-wrapper { display: flex; gap: 30px; width: 100%; }
+.alpha-btn.active { 
+    background: var(--accent); 
+    color: white; 
+}
+
+/* The Medication "Bubbles" */
+.med-item { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    width: 100%; /* Stretches across the wide container */
+    box-sizing: border-box;
+}
+
+.med-info {
+    width: 80%; /* Gives the preview text plenty of room */
+}
+
+.med-info strong {
+    font-size: 1.3em; 
+    display: block;
+    margin-bottom: 8px; 
+}
+
+.category-badge {
+    background-color: var(--accent);
+    color: #ffffff;
+    padding: 6px 14px;
+    border-radius: 20px; 
+    font-size: 0.85em;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.admin-item { 
+    font-family: monospace; 
+    font-size: 13px; 
+}
+
+/* =========================================
+   6. RESPONSIVE & PRINT MEDIA QUERIES
+========================================= */
 .search-box, .list-section { flex: 1; }
 .list-section { position: sticky; top: 20px; }
-
-/* Search box specific sizing */
 .search-box { max-width: 500px; }
 
 @media (max-width: 768px) {
     .content-wrapper { flex-direction: column; }
     .list-section { position: static; }
+    .med-item { flex-direction: column; align-items: flex-start; gap: 15px; }
+    .med-info { width: 100%; }
+    .med-actions { width: 100%; display: flex; gap: 10px; }
 }
 
 @media print {
-    .search-box, .remove-btn, #printBtn, .controls, .alphabet-container, .admin-actions { display: none !important; }
+    .search-box, .remove-btn, #printBtn, .controls, .alphabet-container, .admin-actions, .med-actions { 
+        display: none !important; 
+    }
     body { background: white !important; color: black !important; }
-    .card { box-shadow: none !important; border: 1px solid #ccc !important; }
-}
-
-/* --- 8. ADMIN COMPACT OVERRIDES --- */
-.admin-container input, 
-.admin-container textarea {
-    padding: 8px 12px;
-    font-size: 14px;
-    margin-top: 4px;
-}
-
-.admin-container button {
-    padding: 8px 16px;
-    font-size: 14px;
-}
-
-/* Specifically keep the Admin Submit button easy to see */
-.admin-container .add-btn {
-    width: 100%;
-    margin-top: 20px;
-    padding: 12px;
-}
-
-.admin-container label {
-    margin-top: 10px;
-    font-size: 13px;
-}
-
-/* --- BIGGER MEDICATION BUBBLES --- */
-.med-item {
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    padding: 20px; /* Increased padding to make the bubble bigger */
-    margin-bottom: 15px;
-    border-radius: 12px; /* Rounder corners */
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05); /* Slight pop off the page */
-}
-
-.med-info strong {
-    font-size: 1.3em; /* Larger medication text */
-    display: block;
-    margin-bottom: 8px; /* Space between name and badge */
-}
-
-/* The Category Pill/Bubble */
-.category-badge {
-    background-color: var(--primary-accent);
-    color: #ffffff;
-    padding: 6px 14px;
-    border-radius: 20px; /* Fully rounded edges */
-    font-size: 0.85em;
-    font-weight: 600;
-    display: inline-block;
+    .card, .med-item { 
+        box-shadow: none !important; 
+        border: 1px solid #ccc !important; 
+        break-inside: avoid;
+    }
 }
