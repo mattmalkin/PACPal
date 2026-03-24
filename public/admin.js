@@ -135,9 +135,14 @@ function renderList() {
     document.getElementById('emptyState').style.display = 'none';
     list.innerHTML = currentResults.map(med => `
         <li class="med-item">
-            <div class="med-info">
+            <div class="med-info" style="width: 70%;">
                 <strong>${med.name}</strong>
                 <span class="category-badge">${med.category || 'General'}</span>
+                
+                <p style="font-size: 0.85em; color: var(--text-muted); margin-top: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    ${med.instructions || 'No instructions provided.'}
+                </p>
+                
             </div>
             <div class="med-actions">
                 <button class="edit-btn" onclick="startEdit('${med.id}')">Edit</button>
