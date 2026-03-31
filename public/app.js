@@ -86,9 +86,16 @@ async function init() {
             myDatabase = JSON.parse(cachedMeds);
         } else {
             // CACHE MISS! The database is new, updated, OR the timer expired.
-            console.log("☁️ Downloading fresh database from Firebase...");
-            const snapshot = await db.collection('medications').get();
-            myDatabase = snapshot.docs.map(doc => doc.data());
+            console.log("☁️ Downloading zero-read JSON database...");
+            
+            // This is the direct, public link to your new Storage file!
+            const fileUrl = "https://firebasestorage.googleapis.com/v0/b/pacpal-9f9bf.firebasestorage.app/o/public%2Fmedications.json?alt=media";
+            
+            const response = await fetch(fileUrl);
+            
+            if (!response.ok) throw new Error("Network response was not ok");
+            
+            myDatabase = await response.json();
             
             // Save this fresh data AND the exact timestamp into memory for next time
             localStorage.setItem('pacpal_meds', JSON.stringify(myDatabase));
