@@ -10,52 +10,57 @@
         body { 
             font-family: -apple-system, Segoe UI, Roboto, sans-serif; 
             color: #333; 
-            margin: 40px auto; 
-            padding: 0 20px; 
-            max-width: 1100px; /* Slightly wider for the 5-column layout */
+            /* Remove the 'auto' margin and the max-width cap */
+            margin: 20px 0; 
+            padding: 0; 
+            width: 100%;
+            background-color: #fff;
         }
         
-        h1 { font-size: 1.4rem; font-weight: 600; margin-bottom: 20px; color: #444; }
+        h1 { 
+            font-size: 1.4rem; 
+            font-weight: 600; 
+            margin: 0 20px 20px 20px; /* Keeps the title aligned with the table content */
+            color: #444; 
+        }
         
         table { 
-            width: 100%; 
+            width: 100%; /* This ensures the table stretches to the edge */
             border-collapse: collapse; 
             font-size: 0.9rem; 
-            background: white;
+            table-layout: auto; /* Helps the browser decide column widths based on content */
         }
         
         th { 
             text-align: left; 
-            padding: 12px; 
+            padding: 12px 20px; /* Added more horizontal padding for the edges */
             background: #f8f9fa; 
             color: #666; 
             font-weight: 600; 
             border-bottom: 2px solid #dee2e6;
             text-transform: uppercase;
             font-size: 0.75rem;
-            letter-spacing: 0.5px;
+            white-space: nowrap;
         }
         
         td { 
-            padding: 12px; 
+            padding: 12px 20px; 
             border-bottom: 1px solid #eee; 
             vertical-align: top; 
-            line-height: 1.4;
         }
         
-        /* Column Widths */
-        .col-date { width: 10%; white-space: nowrap; color: #888; }
-        .col-type { width: 10%; font-weight: 600; font-size: 0.8rem; }
-        .col-med  { width: 20%; font-weight: 600; }
-        .col-old  { width: 30%; color: #b91c1c; }
-        .col-new  { width: 30%; color: #15803d; }
+        /* Specific column styling for the full-width look */
+        .col-date { width: 8%; color: #888; white-space: nowrap; }
+        .col-type { width: 12%; font-weight: 600; font-size: 0.8rem; }
+        .col-med  { width: 15%; font-weight: 600; }
+        .col-old  { width: 32%; color: #b91c1c; word-break: break-word; }
+        .col-new  { width: 33%; color: #15803d; word-break: break-word; }
         
-        /* Action Colors */
         .text-CREATE { color: #28a745; }
         .text-UPDATE { color: #fd7e14; }
         .text-DELETE { color: #dc3545; }
         
-        tr:hover { background-color: #fcfcfc; }
+        tr:hover { background-color: #fafafa; }
     </style>
 </head>
 <body>
