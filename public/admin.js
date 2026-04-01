@@ -115,7 +115,7 @@ async function fetchByLetter(letter) {
     document.getElementById('emptyState').style.display = 'none';
 
     const now = Date.now();
-    const CACHE_LIFETIME_MS = 12 * 60 * 60 * 1000; 
+    const CACHE_LIFETIME_MS = 15 * 60 * 1000; // cache updatemin * sec * ms; 
     const cacheKey = `pacpal_admin_meds_${letter}`; 
     
     const cachedMeds = localStorage.getItem(cacheKey);
