@@ -51,10 +51,11 @@ auth.onAuthStateChanged(user => {
     }
 });
 
-async function login() {
+// --- BULLETPROOF BUTTON LISTENERS ---
+document.getElementById('loginBtn').addEventListener('click', async () => {
     const email = document.getElementById('loginEmail').value;
     const pass = document.getElementById('loginPassword').value;
-    const btn = document.querySelector('#loginSection button');
+    const btn = document.getElementById('loginBtn');
     
     btn.innerText = "Authenticating...";
     try {
@@ -64,9 +65,15 @@ async function login() {
         document.getElementById('loginError').style.display = 'block';
         btn.innerText = "Login to PACPal";
     }
-}
+});
 
-function logout() { auth.signOut(); }
+document.getElementById('logoutBtn').addEventListener('click', () => {
+    auth.signOut();
+});
+
+document.getElementById('cancelBtn').addEventListener('click', () => {
+    cancelEdit();
+});
 
 // --- ADMIN LIST ---
 async function displayAdmins() {
@@ -102,27 +109,25 @@ function buildAlphabet() {
 
 async function fetchByLetter(letter) {
     currentLetter = letter;
-    buildAlphabet(); // Updates active button color
+    buildAlphabet(); 
     
     const list = document.getElementById('databaseList');
     document.getElementById('emptyState').style.display = 'none';
 
     const now = Date.now();
-    const CACHE_LIFETIME_MS = 12 * 60 * 60 * 1000; // 12 hours
-    const cacheKey = `pacpal_admin_meds_${letter}`; // Unique cache for each letter
+    const CACHE_LIFETIME_MS = 15 * 60 * 1000; // cache updatemin * sec * ms; 
+    const cacheKey = `pacpal_admin_meds_${letter}`; 
     
     const cachedMeds = localStorage.getItem(cacheKey);
     const cachedTime = localStorage.getItem('pacpal_admin_cache_time');
 
-    // CACHE CHECK
     if (cachedMeds && cachedTime && (now - parseInt(cachedTime, 10) < CACHE_LIFETIME_MS)) {
         console.log(`⚡ Admin loaded letter ${letter} from local cache.`);
         currentResults = JSON.parse(cachedMeds);
         renderList();
-        return; // Stop here! Don't run the Firebase code below.
+        return; 
     }
 
-    // CACHE MISS: Fetch from Firebase
     list.innerHTML = "<div style='padding: 20px; text-align: center;'>↻ Fetching secure database...</div>"; 
 
     try {
@@ -134,7 +139,6 @@ async function fetchByLetter(letter) {
             
         currentResults = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         
-        // Save the fresh results and the timestamp to memory
         localStorage.setItem(cacheKey, JSON.stringify(currentResults));
         localStorage.setItem('pacpal_admin_cache_time', now.toString());
         
@@ -168,20 +172,31 @@ function renderList() {
             </div>
             <div class="med-actions">
                 <button class="edit-btn" onclick="startEdit('${med.id}')">Edit</button>
-                <button class="delete-btn" onclick="deleteMed('${med.id}', '${med.name}')">Delete</button>
+                <button class="delete-btn" onclick="deleteMed('${med.id}', '${med.name.replace(/'/g, "\\'")}')">Delete</button>
             </div>
         </li>`).join('');
 }
 
+// --- NEW: CACHE CLEARING HELPER ---
+function refreshLetterCache(medicationName) {
+    if (!medicationName) return;
+    const targetLetter = medicationName.charAt(0).toUpperCase();
+
+    localStorage.removeItem(`pacpal_admin_meds_${targetLetter}`);
+
+    if (currentLetter !== targetLetter) {
+        localStorage.removeItem(`pacpal_admin_meds_${currentLetter}`);
+    }
+
+    fetchByLetter(targetLetter);
+}
+
 // --- SAVE / UPDATE LOGIC ---
-// This handles BOTH adding new meds and updating existing ones
 document.getElementById('addMedForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
     const rawName = document.getElementById('medName').value.trim();
-    // Capitalize the first letter, but DO NOT force lowercase on the rest (Preserves acronyms like HCTZ)
     const sanitizedName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
-    const targetLetter = sanitizedName.charAt(0).toUpperCase();
 
     const medData = {
         name: sanitizedName, 
@@ -195,34 +210,12 @@ document.getElementById('addMedForm').addEventListener('submit', async function(
 
     try {
         if (editingId) {
-            // 1. Send update to Firebase
             await db.collection('medications').doc(editingId).update(medData);
-            
-            // 2. Optimistic UI: Force the local array to update instantly (Bypasses cache lag)
-            const index = currentResults.findIndex(m => m.id === editingId);
-            if (index !== -1) {
-                currentResults[index] = { id: editingId, ...medData };
-            }
-
-            // 3. Re-sort the array alphabetically just in case the name change altered the order
-            currentResults.sort((a, b) => a.name.localeCompare(b.name));
-
         } else {
-            // Create a brand new record
             await db.collection('medications').add(medData);
         }
-        // This instantly destroys the admin cache timer so the next click forces a fresh download
-        localStorage.removeItem('pacpal_admin_cache_time');
-        
-        // If they changed the first letter (e.g. Aspirin -> Bayer) or added a new med, fetch the new letter
-        if (targetLetter !== currentLetter || !editingId) {
-            await fetchByLetter(targetLetter);
-        } else {
-            // If staying on the same letter, immediately re-render our instantly updated array
-            renderList();
-        }
-        
-        // Clear the form back to default state
+
+        refreshLetterCache(medData.name);
         cancelEdit(); 
         
     } catch (error) {
@@ -230,11 +223,11 @@ document.getElementById('addMedForm').addEventListener('submit', async function(
         alert("System Error: Could not save to database.");
     } finally {
         submitBtn.disabled = false;
-        // Ensure button text returns to normal
         if (!editingId) submitBtn.innerText = "Save to Database";
     }
 });
 
+// --- RESTORED: MISSING FUNCTIONS FROM CUTOFF ---
 function startEdit(id) {
     const med = currentResults.find(m => m.id === id);
     if (!med) return;
@@ -246,7 +239,6 @@ function startEdit(id) {
     
     document.getElementById('formTitle').innerText = "Editing: " + med.name;
     document.getElementById('submitBtn').innerText = "Update Database";
-    // Using inline-block so it sits nicely next to the save button
     document.getElementById('cancelBtn').style.display = "inline-block"; 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -263,91 +255,13 @@ async function deleteMed(id, medName) {
     if (confirm(`⚠️ WARNING: Are you sure you want to permanently delete "${medName}"?`)) {
         try {
             await db.collection('medications').doc(id).delete();
-            // Destroy the cache timer so the deleted item vanishes from the list immediately
-            localStorage.removeItem('pacpal_admin_cache_time');
-            await fetchByLetter(currentLetter); // Refresh list immediately
+            
+            // Wipe the cache and instantly fetch the fresh data
+            refreshLetterCache(medName);
+
         } catch (error) {
             console.error(error);
             alert("Error: Could not delete record.");
         }
-    }
-}
-
-// --- SYSTEM NOTIFICATIONS ---
-async function notifyUpdate() {
-    const btn = document.getElementById('notifyBtn');
-    
-    // Safety check so you don't accidentally click it
-    if (!confirm("Are you sure you want to update the public database date to today?")) {
-        return;
-    }
-
-    btn.innerText = "Pushing...";
-    btn.disabled = true;
-
-    try {
-        // Get exactly today's date formatted as M/D/YY (e.g., 3/24/26)
-        const today = new Date();
-        const dateString = today.toLocaleDateString('en-US', { 
-            month: 'numeric', 
-            day: 'numeric', 
-            year: '2-digit' 
-        });
-
-        // Save it to a special "system" collection in Firestore
-        await db.collection('system').doc('metadata').set({
-            lastUpdated: dateString
-        }, { merge: true });
-
-        btn.innerText = `✓ Updated to ${dateString}`;
-        btn.style.backgroundColor = "var(--success)"; // Turn it green!
-        
-        // Reset the button after 3 seconds
-        setTimeout(() => {
-            btn.innerText = "📢 Push Update Notification";
-            btn.style.backgroundColor = "var(--warning)";
-            btn.disabled = false;
-        }, 3000);
-
-    } catch (error) {
-        console.error("Error pushing date:", error);
-        alert("System Error: Could not update the public date.");
-        btn.innerText = "📢 Push Update Notification";
-        btn.disabled = false;
-    }
-}
-
-// --- MANUAL DATE OVERRIDE ---
-async function setManualDate() {
-    const dateInput = document.getElementById('manualDateInput').value.trim();
-    const statusMsg = document.getElementById('manualDateStatus');
-
-    if (!dateInput) {
-        alert("Please enter a date first.");
-        return;
-    }
-
-    try {
-        // Save the manually typed date to Firestore
-        await db.collection('system').doc('metadata').set({
-            lastUpdated: dateInput
-        }, { merge: true });
-
-        // Show a temporary success message
-        statusMsg.innerText = `✓ Public date set to: ${dateInput}`;
-        statusMsg.style.color = "var(--success)";
-        statusMsg.style.display = "block";
-        document.getElementById('manualDateInput').value = ''; // clear the box
-
-        // Hide the message after 4 seconds
-        setTimeout(() => {
-            statusMsg.style.display = "none";
-        }, 4000);
-
-    } catch (error) {
-        console.error("Manual Date Error:", error);
-        statusMsg.innerText = "✖ Error saving manual date.";
-        statusMsg.style.color = "var(--danger)";
-        statusMsg.style.display = "block";
     }
 }
