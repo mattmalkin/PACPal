@@ -51,7 +51,8 @@ auth.onAuthStateChanged(user => {
     }
 });
 
-async function login() {
+// FIX: Attached to 'window' so the HTML onclick can see it!
+window.login = async function() {
     const email = document.getElementById('loginEmail').value;
     const pass = document.getElementById('loginPassword').value;
     const btn = document.querySelector('#loginSection button');
@@ -64,9 +65,12 @@ async function login() {
         document.getElementById('loginError').style.display = 'block';
         btn.innerText = "Login to PACPal";
     }
-}
+};
 
-function logout() { auth.signOut(); }
+// FIX: Attached to 'window' as well
+window.logout = function() { 
+    auth.signOut(); 
+};
 
 // --- ADMIN LIST ---
 async function displayAdmins() {
