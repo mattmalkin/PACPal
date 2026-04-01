@@ -5,14 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PACPal - Recent Updates</title>
     <!-- Assuming you have a style.css, this will keep your colors matching! -->
-    <link rel="stylesheet" href="style.css"> 
     <style>
-        body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
-        .log-card { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 8px; }
-        .log-date { color: #888; font-size: 0.9em; margin-bottom: 5px; }
-        .action-CREATE { color: #27ae60; font-weight: bold; }
-        .action-UPDATE { color: #f39c12; font-weight: bold; }
-        .action-DELETE { color: #c0392b; font-weight: bold; }
+        body { 
+            font-family: -apple-system, Segoe UI, Roboto, sans-serif; 
+            color: #333; 
+            /* Remove the 'auto' margin and the max-width cap */
+            margin: 20px 0; 
+            padding: 0; 
+            width: 100%;
+            background-color: #fff;
+        }
+        
+        h1 { 
+            font-size: 1.4rem; 
+            font-weight: 600; 
+            margin: 0 20px 20px 20px; /* Keeps the title aligned with the table content */
+            color: #444; 
+        }
+        
+        table { 
+            width: 100%; /* This ensures the table stretches to the edge */
+            border-collapse: collapse; 
+            font-size: 0.9rem; 
+            table-layout: auto; /* Helps the browser decide column widths based on content */
+        }
+        
+        th { 
+            text-align: left; 
+            padding: 12px 20px; /* Added more horizontal padding for the edges */
+            background: #f8f9fa; 
+            color: #666; 
+            font-weight: 600; 
+            border-bottom: 2px solid #dee2e6;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+        
+        td { 
+            padding: 12px 20px; 
+            border-bottom: 1px solid #eee; 
+            vertical-align: top; 
+        }
+        
+        /* Specific column styling for the full-width look */
+        .col-date { width: 8%; color: #888; white-space: nowrap; }
+        .col-type { width: 12%; font-weight: 600; font-size: 0.8rem; }
+        .col-med  { width: 15%; font-weight: 600; }
+        .col-old  { width: 32%; color: #b91c1c; word-break: break-word; }
+        .col-new  { width: 33%; color: #15803d; word-break: break-word; }
+        
+        .text-CREATE { color: #28a745; }
+        .text-UPDATE { color: #fd7e14; }
+        .text-DELETE { color: #dc3545; }
+        
+        tr:hover { background-color: #fafafa; }
     </style>
 </head>
 <body>
@@ -26,79 +73,79 @@
     </div>
 
     <script>
-async function loadUpdates() {
-    const listEl = document.getElementById('updatesList');
-    
-    try {
-        const updatesUrl = "https://firebasestorage.googleapis.com/v0/b/pacpal-9f9bf.firebasestorage.app/o/public%2Fupdates.json?alt=media";
-        const response = await fetch(updatesUrl);
+        async function loadUpdates() {
+            const listEl = document.getElementById('updatesList');
+            
+            try {
+                const updatesUrl = "https://firebasestorage.googleapis.com/v0/b/pacpal-9f9bf.firebasestorage.app/o/public%2Fupdates.json?alt=media";
+                const response = await fetch(updatesUrl);
+                const logs = await response.json();
         
-        if (!response.ok) throw new Error("File not found");
+                if (logs.length === 0) {
+                    listEl.innerHTML = "<p>No updates found.</p>";
+                    return;
+                }
         
-        const logs = await response.json();
+                let tableRows = "";
         
-        if (logs.length === 0) {
-            listEl.innerHTML = "<p>No recent changes found.</p>";
-            return;
-        }
-
-        // --- THE UPDATED MAPPING LOGIC ---
-        listEl.innerHTML = logs.map(log => {
-            // 1. Set the Icon and Label
-            let actionText = log.action;
-            let icon = '📝';
-            if (log.action === 'CREATE') { actionText = 'ADDED'; icon = '🟢'; }
-            if (log.action === 'UPDATE') { actionText = 'UPDATED'; icon = '🟠'; }
-            if (log.action === 'DELETE') { actionText = 'REMOVED'; icon = '🔴'; }
-
-            // 2. Build the detailed diff
-            let detailsHtml = '';
-            if (log.action === 'UPDATE' && log.updateDetails) {
-                // We split the " | " we created in the Cloud Function
-                const diffs = log.updateDetails.split(' | ');
-                
-                const diffLines = diffs.map(diff => {
-                    // Split the string at the arrow →
-                    const parts = diff.split(' → ');
-                    if (parts.length === 2) {
-                        return `
-                            <div style="margin-top: 5px; line-height: 1.4;">
-                                <span style="font-size: 0.75em; text-transform: uppercase; color: #999; display: block;">${parts[0]}</span>
-                                <span style="color: #c0392b; text-decoration: line-through; font-size: 0.85em;">${parts[0].includes(':') ? parts[0].split(': ')[1] : ''}</span> 
-                                <span style="color: #27ae60; font-size: 0.9em; font-weight: 500;"> → ${parts[1]}</span>
-                            </div>
+                logs.forEach(log => {
+                    // If it's an update, we might have multiple field changes (e.g., instructions AND category)
+                    if (log.action === 'UPDATE' && log.updateDetails && log.updateDetails.includes(' → ')) {
+                        const diffs = log.updateDetails.split(' | ');
+                        
+                        diffs.forEach(diff => {
+                            const parts = diff.split(' → ');
+                            const fieldName = parts[0].split(':')[0].toUpperCase();
+                            const oldVal = parts[0].split(': ')[1] || '(empty)';
+                            const newVal = parts[1] || '(empty)';
+        
+                            tableRows += `
+                                <tr>
+                                    <td class="col-date">${log.date}</td>
+                                    <td class="col-type text-UPDATE">EDIT: ${fieldName}</td>
+                                    <td class="col-med">${log.medicationName}</td>
+                                    <td class="col-old">${oldVal}</td>
+                                    <td class="col-new">${newVal}</td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        // For CREATE or DELETE, we show one simple row
+                        const colorClass = `text-${log.action}`;
+                        tableRows += `
+                            <tr>
+                                <td class="col-date">${log.date}</td>
+                                <td class="col-type ${colorClass}">${log.action}</td>
+                                <td class="col-med">${log.medicationName}</td>
+                                <td class="col-old">${log.action === 'CREATE' ? '---' : 'Full Record'}</td>
+                                <td class="col-new">${log.action === 'DELETE' ? '---' : 'Full Record'}</td>
+                            </tr>
                         `;
                     }
-                    return `<div>${diff}</div>`;
-                }).join('');
-
-                detailsHtml = `
-                    <div style="margin-left: 28px; padding: 10px; background: #f9f9f9; border-left: 3px solid #ddd; margin-top: 8px; border-radius: 4px;">
-                        ${diffLines}
-                    </div>
+                });
+        
+                listEl.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Medication</th>
+                                <th>Old Entry</th>
+                                <th>New Entry</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
                 `;
+        
+            } catch (error) {
+                listEl.innerHTML = "<p>Error loading log table.</p>";
             }
-
-            // 3. Return the final HTML for this specific card
-            return `
-                <div class="log-card">
-                    <div class="log-date">${log.date}</div>
-                    <div>
-                        ${icon} <span class="action-${log.action}">${actionText}</span>: 
-                        <strong>${log.medicationName}</strong>
-                    </div>
-                    ${detailsHtml}
-                </div>
-            `;
-        }).join('');
-
-    } catch (error) {
-        console.error("Error fetching updates:", error);
-        listEl.innerHTML = "<p><em>Waiting for the first update. Make a change in Admin to see logs!</em></p>";
-    }
-}
-
-loadUpdates();
+        }
+        loadUpdates();
     </script>
 </body>
 </html>
