@@ -45,6 +45,7 @@ auth.onAuthStateChanged(user => {
         buildAlphabet(); 
         fetchByLetter('A');
         displayAdmins();
+        loadMailingList();
     } else {
         document.getElementById('loginSection').style.display = 'block';
         document.getElementById('dataFormSection').style.display = 'none';
@@ -74,6 +75,78 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 document.getElementById('cancelBtn').addEventListener('click', () => {
     cancelEdit();
 });
+
+// --- MAILING LIST MANAGEMENT ---
+
+// 1. Fetch and display the current emails
+async function loadMailingList() {
+    const listEl = document.getElementById('mailing-list-ui');
+    listEl.innerHTML = "<li>Loading subscribers...</li>";
+
+    try {
+        const doc = await db.collection('system').doc('mailingList').get();
+        const emails = doc.exists ? (doc.data().emails || []) : [];
+
+        if (emails.length === 0) {
+            listEl.innerHTML = "<li class='admin-item' style='color: #888;'>No subscribers yet.</li>";
+            return;
+        }
+
+        listEl.innerHTML = emails.map(email => `
+            <li class="admin-item" style="display: flex; justify-content: space-between; align-items: center;">
+                <strong>${email}</strong>
+                <button class="delete-btn" onclick="removeMailingEmail('${email}')" style="padding: 5px 10px; font-size: 0.8rem;">Remove</button>
+            </li>
+        `).join('');
+
+    } catch (error) {
+        console.error("Error loading mailing list:", error);
+        listEl.innerHTML = "<li class='error'>Error loading subscriber list.</li>";
+    }
+}
+
+// 2. Add a new email safely
+async function addMailingEmail() {
+    const inputEl = document.getElementById('newEmailInput');
+    const newEmail = inputEl.value.trim().toLowerCase();
+
+    if (!newEmail || !newEmail.includes('@')) {
+        alert("Please enter a valid email address.");
+        return;
+    }
+
+    try {
+        // arrayUnion safely adds it ONLY if it doesn't already exist
+        await db.collection('system').doc('mailingList').set({
+            emails: firebase.firestore.FieldValue.arrayUnion(newEmail)
+        }, { merge: true });
+
+        inputEl.value = ""; // Clear the box
+        loadMailingList();  // Refresh the UI
+
+    } catch (error) {
+        console.error("Error adding email:", error);
+        alert("Could not add email. Check console.");
+    }
+}
+
+// 3. Remove an email
+async function removeMailingEmail(emailToRemove) {
+    if (!confirm(`Are you sure you want to remove ${emailToRemove} from the weekly briefing?`)) return;
+
+    try {
+        await db.collection('system').doc('mailingList').update({
+            emails: firebase.firestore.FieldValue.arrayRemove(emailToRemove)
+        });
+
+        loadMailingList(); // Refresh the UI
+
+    } catch (error) {
+        console.error("Error removing email:", error);
+        alert("Could not remove email.");
+    }
+}
+
 
 // --- ADMIN LIST ---
 async function displayAdmins() {
