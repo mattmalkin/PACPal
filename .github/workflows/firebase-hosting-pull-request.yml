@@ -18,7 +18,7 @@ jobs:
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4 # Fixed: Reverted to v4 (latest stable)
       
       - uses: FirebaseExtended/action-hosting-deploy@v0
         id: firebase_pr_preview  # Added ID for referencing
@@ -27,7 +27,7 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_PACPAL_9F9BF }}
           projectId: pacpal-9f9bf
 
-- name: Add Preview Link to Summary
+      - name: Add Preview Link to Summary # Fixed: Indented to align with the steps above
         if: always()
         env:
           PREVIEW_URL: ${{ steps.firebase_pr_preview.outputs.details_url }}
