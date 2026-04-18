@@ -27,11 +27,12 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_PACPAL_9F9BF }}
           projectId: pacpal-9f9bf
 
-      - name: Add Preview Link to Summary
+- name: Add Preview Link to Summary
         if: always()
+        env:
+          PREVIEW_URL: ${{ steps.firebase_pr_preview.outputs.details_url }}
+          EXPIRY: ${{ steps.firebase_pr_preview.outputs.expire_time }}
         run: |
           echo "### 🛠️ Pull Request Preview" >> $GITHUB_STEP_SUMMARY
-          echo "The changes in this PR have been deployed for review." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Preview URL:** [${{ steps.firebase_pr_preview.outputs.details_url }}](${ { steps.firebase_pr_preview.outputs.details_url }})" >> $GITHUB_STEP_SUMMARY
-          echo "**Expire Time:** ${{ steps.firebase_pr_preview.outputs.expire_time }}" >> $GITHUB_STEP_SUMMARY
+          echo "URL: [$PREVIEW_URL]($PREVIEW_URL)" >> $GITHUB_STEP_SUMMARY
+          echo "Expires: $EXPIRY" >> $GITHUB_STEP_SUMMARY
