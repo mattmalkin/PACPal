@@ -6,7 +6,6 @@
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
-    "site": "pacpal-meds",
     "public": "public",
     "ignore": [
       "firebase.json",
